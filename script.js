@@ -1,73 +1,78 @@
 //your code here
-document.addEventListener('DOMContentLoaded', () => {
-    const imageContainer = document.getElementById('image-container');
-    const resetButton = document.getElementById('reset');
-    const verifyButton = document.getElementById('verify');
-    const para = document.getElementById('para');
-    const images = ['img1', 'img2', 'img3', 'img4', 'img5'];
-    let selectedImages = [];
-    let imageElements = [];
+const images = [
+    'img1',
+    'img2',
+    'img3',
+    'img4',
+    'img5'
+   ];
 
-    function shuffle(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-
-    function renderImages() {
-        imageContainer.innerHTML = '';
-        selectedImages = [];
-        para.textContent = '';
-        resetButton.style.display = 'none';
-        verifyButton.style.display = 'none';
-
-        const randomIndex = Math.floor(Math.random() * images.length);
-        const imagesToRender = [...images];
-        imagesToRender.push(images[randomIndex]);
-        shuffle(imagesToRender);
-
-        imagesToRender.forEach((imgClass, index) => {
-            const img = document.createElement('div');
-            img.className = imgClass;
-            img.dataset.index = index;
-            img.addEventListener('click', handleImageClick);
-            imageContainer.appendChild(img);
-            imageElements.push(img);
-        });
-    }
-
-    function handleImageClick(event) {
-        const img = event.target;
-        const index = img.dataset.index;
-
-        if (!selectedImages.includes(index)) {
-            selectedImages.push(index);
-            img.style.border = '2px solid blue';
-
-            if (selectedImages.length === 1) {
-                resetButton.style.display = 'block';
-            }
-
-            if (selectedImages.length === 2) {
-                verifyButton.style.display = 'block';
-            }
-        }
-    }
-
-    resetButton.addEventListener('click', () => {
-        renderImages();
+   function generateImages(){
+    var selectedImageIndex = Math.floor(Math.random()*images.length); //1 , 4,2,3, 0,5
+    var selectedImage = images[selectedImageIndex];
+    var allImages = images.concat(selectedImage);
+    var shuffledImages = allImages.sort(function(){
+        return 0.5 - Math.random();
     });
 
-    verifyButton.addEventListener('click', () => {
-        verifyButton.style.display = 'none';
-        const [firstIndex, secondIndex] = selectedImages;
-        if (imageElements[firstIndex].className === imageElements[secondIndex].className) {
-            para.textContent = 'You are a human. Congratulations!';
-        } else {
-            para.textContent = 'We can\'t verify you as a human. You selected the non-identical tiles.';
-        }
-    });
+    
+    var imageContainer = document.getElementById('image-container');
+    imageContainer.innerHTML = '';
+    for(var index = 0; index < shuffledImages.length; index++){
+        var imgClass = shuffledImages[index];
+        var img = document.createElement('img');
+        img.className = imgClass;
+        img.dataset.index = index;
+        img.addEventListener('click', handleImageClick);
+        imageContainer.appendChild(img);
+    }
+   }
 
-    renderImages();
-});
+   let firstClick = null;
+   let secondClick = null;
+
+   function handleImageClick(event){
+    const clickedImage = event.target;
+    if(firstClick == clickedImage || secondClick == clickedImage ) return;
+
+    document.getElementById('reset').style.display = 'block';
+
+    if(!firstClick) {
+        firstClick = clickedImage;
+        clickedImage.classList.add('selected');
+    }else if(!secondClick){
+        secondClick = clickedImage;
+        clickedImage.classList.add('selected');
+        document.getElementById('verify').style.display = 'block';
+    }
+
+    
+   }
+
+   function reset(){
+    firstClick = null;
+    secondClick = null;
+    document.getElementById('reset').style.display = 'none';
+    document.getElementById('verify').style.display = 'none';
+    document.getElementById('para').style.display = 'none';
+    document.getElementById('image-container').innerHTML = '';
+    generateImages();
+   }
+
+   function verify(){
+    if(firstClick && secondClick){
+        if(firstClick.src === secondClick.src){
+            document.getElementById('para').innerHTML = 'Verified';
+
+        }else{
+            document.getElementById('para').innerHTML = 'Not a human';
+        }
+
+        document.getElementById('para').style.display = 'block';
+        document.getElementById('verify').style.display = 'none';
+    }
+   }
+   document.getElementById('reset').addEventListener('click', reset);
+   document.getElementById('verify').addEventListener('click', verify);
+
+   generateImages();
